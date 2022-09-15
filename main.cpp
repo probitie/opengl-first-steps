@@ -47,9 +47,16 @@ int main(void)
 
     while(!glfwWindowShouldClose(window))
     {
+        // user input
         processInput(window);
-        glfwSwapBuffers(window);
+
+        // rendering stuff
+        //glClearColor(0.2f, 0.6f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        // swap buffers, check events
         glfwPollEvents();
+        glfwSwapBuffers(window);
     }
 
     glfwTerminate();
