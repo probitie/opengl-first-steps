@@ -1,0 +1,1 @@
+Hello, that is my tutorial OpenGl project, like first steps. I am going to update it while learning learnopengl.com. After that you will be able to find some interesting stuff in my other OpenGL repos
