@@ -45,6 +45,144 @@ int main(void)
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+
+
+    // === prepare data before rendering === //
+
+    // 2D triangle
+    float vertices[]
+    {
+      -0.5f, -0.5f, 0.0f,
+       0.5f, -0.5f, 0.0f,
+       0.0f,  0.5f, 0.0f
+
+    };
+
+    // vertex buffer objects
+
+    // generate id for the buffer
+    GLuint VBO;
+    glGenBuffers(1, &VBO);
+
+    // now whenever we call GL_ARRAY_BUFFER
+    // the VBO buffer will be invoked
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    // write our triange to that buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+
+
+    // ==================================== //
+
+
+    // =========== vertex shader ========== //
+
+    // source code
+    const char * vertexShaderSource = "# version 330 core\n"
+            "layout (location = 0) in vec3 aPos;\n"
+            "void main()\n"
+            "{\n"
+            "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+            "}\0";
+
+    // shader object id
+    GLuint vertexShader;
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+
+    // write source code to shader object
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+
+    // compile it at runtime
+    glCompileShader(vertexShader);
+
+    // check shader compilation errors
+
+    GLint success;
+    const GLint infoLogSize = 512;
+    GLchar infoLog[infoLogSize]{};
+
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+
+    if (!success)
+    {
+        glGetShaderInfoLog(vertexShader, infoLogSize, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    //
+
+
+    // ==================================== //
+
+
+    // ========== fragment shader ========= //
+
+    const char* fragmentShaderSource = "#version 330 core\n"
+                                       "out vec4 FragColor;\n"
+                                       "void main()\n"
+                                       "{\n"
+                                       "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+                                       "}\n";
+
+    // shader id
+    GLuint fragmentShader;
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+    // write source code to shader object
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+
+    // runtime compiling
+    glCompileShader(fragmentShader);
+
+    // check errors for this shader
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+
+    if (!success)
+    {
+        glGetShaderInfoLog(fragmentShader, infoLogSize, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    // ==================================== //
+
+
+    // == add shaders to the final shader program == //
+
+    // shader program id
+    GLuint shaderProgram;
+    shaderProgram = glCreateProgram();
+
+    // linking shaders
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+
+    glLinkProgram(shaderProgram);
+
+    // check errors
+    glGetShaderiv(shaderProgram, GL_LINK_STATUS, &success);
+
+    if (!success)
+    {
+        glGetShaderInfoLog(shaderProgram, infoLogSize, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FINAL::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+    // ==================================== //
+
+    // start using our shader program
+    glUseProgram(shaderProgram);
+
+    // delete shaders after linking
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    // specify data which
+    // will go to the shader program
+    // ( especially to the vertex shader )
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // main loop
     while(!glfwWindowShouldClose(window))
     {
         // user input
@@ -57,82 +195,15 @@ int main(void)
         // glClearColor(0.2f, 0.6f, 0.5f, 1.0f);
         // glClear(GL_COLOR_BUFFER_BIT);
 
-        // === prepare data before rendering === //
-
-        // 2D triangle
-        float vertices[]
-        {
-          -0.5f, -0.5f, 0.0f,
-           0.5f, -0.5f, 0.0f,
-           0.0f,  0.5f, 0.0f
-
-        };
-
-        // vertex buffer objects
-
-        // generate id for the buffer
-        GLuint VBO;
-        glGenBuffers(1, &VBO);
-
-        // now whenever we call GL_ARRAY_BUFFER
-        // the VBO buffer will be invoked
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-        // write our triange to that buffer
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 
-
-        // ==================================== //
-
-
-        // =========== vertex shader ========== //
-
-        // source code
-        const char * vertexShaderSource = "# version 330 core\n"
-                "layout (location = 0) in vec3 aPos;\n"
-                "void main()\n"
-                "{\n"
-                "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                "}\0";
-
-        // shader object id
-        GLuint vertexShader;
-        vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-        // write source code to shader object
-        glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-
-        // compile it at runtime
-        glCompileShader(vertexShader);
-
-        // check shader compilation errors
-
-        GLint success;
-        const GLint infoLogSize = 512;
-        GLchar infoLog[infoLogSize]{};
-        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-        if (!success)
-        {
-            glGetShaderInfoLog(vertexShader, infoLogSize, NULL, infoLog);
-            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-        }
-
-        //
-
-
-        // ==================================== //
-
-
-        // ========== fragment shader ========= //
-
-        // ==================================== //
 
         // swap buffers, check events
         glfwPollEvents();
         glfwSwapBuffers(window);
     }
+
+
 
     glfwTerminate();
 
