@@ -64,6 +64,12 @@ int main(void)
     GLuint VBO;
     glGenBuffers(1, &VBO);
 
+    // generate id for the buffer
+    GLuint VAO;
+    glGenVertexArrays(1, &VAO);
+
+    glBindVertexArray(VAO);
+
     // now whenever we call GL_ARRAY_BUFFER
     // the VBO buffer will be invoked
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -192,11 +198,12 @@ int main(void)
         // the rendering stuff happens here
 
 
-        // glClearColor(0.2f, 0.6f, 0.5f, 1.0f);
-        // glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.2f, 0.6f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
 
 
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // swap buffers, check events
         glfwPollEvents();
