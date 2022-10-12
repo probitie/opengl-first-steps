@@ -214,8 +214,12 @@ int main(void)
         glClearColor(0.2f, 0.6f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-
+        // draw our shape
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+        // draw shapes without filling
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // swap buffers, check events
