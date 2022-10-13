@@ -16,7 +16,6 @@ void processInput(GLFWwindow *window)
 
 int main(void)
 {
-
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); // all this means as OpenGL 3.3 (can be higher) so GLFW 3.3 (can be higher too)
@@ -52,16 +51,19 @@ int main(void)
     // 2D points (for rectangle)
     float vertices[]
     {
-        0.5f,  0.5f, 0.0f,  // top right
-        0.5f, -0.5f, 0.0f,  // bottom right
-       -0.5f, -0.5f, 0.0f,  // bottom left
-       -0.5f,  0.5f, 0.0f   // top left
+       -0.5f,   0.5f, 0.0f,  //        top first
+        0.5f,   0.5f, 0.0f,  //        top second
+       -0.9f,  -0.5f, 0.0f,  // bottom left first
+       -0.1f,  -0.5f, 0.0f,  // bottom right first
+        0.9f,  -0.5f, 0.0f,  // bottom left second
+        0.1f,  -0.5f, 0.0f   // bottom right second
+
     };
 
     // two triangles to display a rectangle (or square)
     GLuint indices[] = {
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
+        0, 2, 3,   // first triangle
+        1, 4, 5    // second triangle
     };
 
     // vertex buffer objects
@@ -218,7 +220,7 @@ int main(void)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
         // draw shapes without filling
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
