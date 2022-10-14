@@ -67,7 +67,7 @@ int main(void)
 
     // check shader compilation errors
 
-    GLint success;
+    GLint success, successSecond;;
     const GLint infoLogSize = 512;
     GLchar infoLog[infoLogSize]{};
 
@@ -78,6 +78,7 @@ int main(void)
         glGetShaderInfoLog(vertexShader, infoLogSize, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
+
 
     //
 
@@ -94,23 +95,43 @@ int main(void)
                                        "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
                                        "}\n";
 
+    const char* fragmentShaderSourceYellow = "#version 330 core\n"
+                                       "out vec4 FragColor;\n"
+                                       "void main()\n"
+                                       "{\n"
+                                       "    FragColor = vec4(1.0f, 0.9f, 0.6f, 1.0f);\n"
+                                       "}\n";
+
     // shader id
-    GLuint fragmentShader;
+    GLuint fragmentShader, fragmentShaderYellow;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    fragmentShaderYellow = glCreateShader(GL_FRAGMENT_SHADER);
 
     // write source code to shader object
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 
+    // shader with color yellow
+    glShaderSource(fragmentShaderYellow, 1, &fragmentShaderSourceYellow, NULL);
+
     // runtime compiling
     glCompileShader(fragmentShader);
+    glCompileShader(fragmentShaderYellow);
 
     // check errors for this shader
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
 
+
+
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if (!success)
     {
         glGetShaderInfoLog(fragmentShader, infoLogSize, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+        std::cout << "ERROR::SHADER::FRAGMENT::FIRST::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &successSecond);
+    if (!successSecond)
+    {
+        glGetShaderInfoLog(fragmentShaderYellow, infoLogSize, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT::SECOND::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
 
     // ==================================== //
@@ -119,31 +140,42 @@ int main(void)
     // == add shaders to the final shader program == //
 
     // shader program id
-    GLuint shaderProgram;
+    GLuint shaderProgram, shaderProgramYellow;
     shaderProgram = glCreateProgram();
+
+    shaderProgramYellow = glCreateProgram();
 
     // linking shaders
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
-
     glLinkProgram(shaderProgram);
+
+    glAttachShader(shaderProgramYellow, vertexShader);
+    glAttachShader(shaderProgramYellow, fragmentShaderYellow);
+    glLinkProgram(shaderProgramYellow);
 
     // check errors
     glGetShaderiv(shaderProgram, GL_LINK_STATUS, &success);
+    glGetShaderiv(shaderProgramYellow, GL_LINK_STATUS, &successSecond);
 
     if (!success)
     {
         glGetShaderInfoLog(shaderProgram, infoLogSize, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FINAL::LINKING_FAILED\n" << infoLog << std::endl;
+        std::cout << "ERROR::SHADER::FINAL::FIRST::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+    if (!successSecond)
+    {
+        glGetShaderInfoLog(shaderProgramYellow, infoLogSize, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FINAL::SECOND::LINKING_FAILED\n" << infoLog << std::endl;
     }
     // ==================================== //
 
-    // start using our shader program
-    glUseProgram(shaderProgram);
+
 
     // delete shaders after linking
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+    glDeleteShader(fragmentShaderYellow);
 
 
     // === prepare data before rendering === //
@@ -216,10 +248,14 @@ int main(void)
         // start using our shader program (but in the loop)
         glUseProgram(shaderProgram);
 
+        // start using our shader program
+        glUseProgram(shaderProgram);
+
         // draw the first triangle from the first VAO
         glBindVertexArray(VAOs[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
+        glUseProgram(shaderProgramYellow);
         // draw the second triangle from the second VAO
         glBindVertexArray(VAOs[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -233,6 +269,7 @@ int main(void)
     glad_glDeleteVertexArrays(2, VAOs);
     glad_glDeleteBuffers(2, VBOs);
     glDeleteProgram(shaderProgram);
+    glDeleteProgram(shaderProgramYellow);
 
     glfwTerminate();
 
