@@ -2,6 +2,7 @@
 #include <KHR/khrplatform.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <math.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -50,9 +51,11 @@ int main(void)
     // source code
     const char * vertexShaderSource = "# version 330 core\n"
             "layout (location = 0) in vec3 aPos;\n"
+            "out vec4 vertexColor;\n"
             "void main()\n"
             "{\n"
-            "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+            "    gl_Position = vec4(aPos, 1.0);\n"
+            "    vertexColor = vec4(0.5, 0.0, 0.0, 1.0);\n"
             "}\0";
 
     // shader object id
@@ -88,49 +91,43 @@ int main(void)
 
     // ========== fragment shader ========= //
 
-    const char* fragmentShaderSource = "#version 330 core\n"
+    const char* fragmentShaderSourceFirst = "#version 330 core\n"
+                                       "in vec4 vertexColor;\n"
                                        "out vec4 FragColor;\n"
+                                       "uniform vec4 outColor;  // we can set this in our actual code \n"
                                        "void main()\n"
                                        "{\n"
-                                       "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+                                       "    FragColor = outColor;\n"
                                        "}\n";
 
-    const char* fragmentShaderSourceYellow = "#version 330 core\n"
-                                       "out vec4 FragColor;\n"
-                                       "void main()\n"
-                                       "{\n"
-                                       "    FragColor = vec4(1.0f, 0.9f, 0.6f, 1.0f);\n"
-                                       "}\n";
+    const char* fragmentShaderSourceSecond = fragmentShaderSourceFirst;
 
     // shader id
-    GLuint fragmentShader, fragmentShaderYellow;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    fragmentShaderYellow = glCreateShader(GL_FRAGMENT_SHADER);
+    GLuint fragmentShaderFirst, fragmentShaderSecond;
+    fragmentShaderFirst = glCreateShader(GL_FRAGMENT_SHADER);
+    fragmentShaderSecond = glCreateShader(GL_FRAGMENT_SHADER);
 
     // write source code to shader object
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glShaderSource(fragmentShaderFirst, 1, &fragmentShaderSourceFirst, NULL);
 
-    // shader with color yellow
-    glShaderSource(fragmentShaderYellow, 1, &fragmentShaderSourceYellow, NULL);
+    glShaderSource(fragmentShaderSecond, 1, &fragmentShaderSourceSecond, NULL);
 
     // runtime compiling
-    glCompileShader(fragmentShader);
-    glCompileShader(fragmentShaderYellow);
+    glCompileShader(fragmentShaderFirst);
+    glCompileShader(fragmentShaderSecond);
 
     // check errors for this shader
 
-
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(fragmentShaderFirst, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-        glGetShaderInfoLog(fragmentShader, infoLogSize, NULL, infoLog);
+        glGetShaderInfoLog(fragmentShaderFirst, infoLogSize, NULL, infoLog);
         std::cout << "ERROR::SHADER::FRAGMENT::FIRST::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &successSecond);
+    glGetShaderiv(fragmentShaderFirst, GL_COMPILE_STATUS, &successSecond);
     if (!successSecond)
     {
-        glGetShaderInfoLog(fragmentShaderYellow, infoLogSize, NULL, infoLog);
+        glGetShaderInfoLog(fragmentShaderSecond, infoLogSize, NULL, infoLog);
         std::cout << "ERROR::SHADER::FRAGMENT::SECOND::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
 
@@ -140,23 +137,23 @@ int main(void)
     // == add shaders to the final shader program == //
 
     // shader program id
-    GLuint shaderProgram, shaderProgramYellow;
+    GLuint shaderProgram, shaderProgramSecond;
     shaderProgram = glCreateProgram();
 
-    shaderProgramYellow = glCreateProgram();
+    shaderProgramSecond = glCreateProgram();
 
     // linking shaders
     glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
+    glAttachShader(shaderProgram, fragmentShaderFirst);
     glLinkProgram(shaderProgram);
 
-    glAttachShader(shaderProgramYellow, vertexShader);
-    glAttachShader(shaderProgramYellow, fragmentShaderYellow);
-    glLinkProgram(shaderProgramYellow);
+    glAttachShader(shaderProgramSecond, vertexShader);
+    glAttachShader(shaderProgramSecond, fragmentShaderSecond);
+    glLinkProgram(shaderProgramSecond);
 
     // check errors
     glGetShaderiv(shaderProgram, GL_LINK_STATUS, &success);
-    glGetShaderiv(shaderProgramYellow, GL_LINK_STATUS, &successSecond);
+    glGetShaderiv(shaderProgramSecond, GL_LINK_STATUS, &successSecond);
 
     if (!success)
     {
@@ -165,7 +162,7 @@ int main(void)
     }
     if (!successSecond)
     {
-        glGetShaderInfoLog(shaderProgramYellow, infoLogSize, NULL, infoLog);
+        glGetShaderInfoLog(shaderProgramSecond, infoLogSize, NULL, infoLog);
         std::cout << "ERROR::SHADER::FINAL::SECOND::LINKING_FAILED\n" << infoLog << std::endl;
     }
     // ==================================== //
@@ -174,8 +171,8 @@ int main(void)
 
     // delete shaders after linking
     glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-    glDeleteShader(fragmentShaderYellow);
+    glDeleteShader(fragmentShaderFirst);
+    glDeleteShader(fragmentShaderSecond);
 
 
     // === prepare data before rendering === //
@@ -245,17 +242,26 @@ int main(void)
         // the rendering stuff happens here
         glClearColor(0.2f, 0.6f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        GLfloat timeValue = glfwGetTime();
+        float redValue = (std::sin(timeValue) / 2.0f + 0.5f);
+        float greenValue = (std::cos(timeValue) / 2.0f + 0.5f);
+        float blueValue = (std::sin(timeValue+1123) / 2.0f + 0.5f);
+        int colorVariableLocation = glGetUniformLocation(shaderProgram, "outColor");
+        glUniform4f(colorVariableLocation, redValue, greenValue, blueValue, 1.0f);
+
+
         // start using our shader program (but in the loop)
         glUseProgram(shaderProgram);
-
-        // start using our shader program
-        glUseProgram(shaderProgram);
-
         // draw the first triangle from the first VAO
         glBindVertexArray(VAOs[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        glUseProgram(shaderProgramYellow);
+        int colorVariableLocationSecond = glGetUniformLocation(shaderProgramSecond, "outColor");
+        glUniform4f(colorVariableLocationSecond, greenValue, blueValue, redValue, 0.8f);
+
+        glUseProgram(shaderProgramSecond);
+
         // draw the second triangle from the second VAO
         glBindVertexArray(VAOs[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -269,7 +275,7 @@ int main(void)
     glad_glDeleteVertexArrays(2, VAOs);
     glad_glDeleteBuffers(2, VBOs);
     glDeleteProgram(shaderProgram);
-    glDeleteProgram(shaderProgramYellow);
+    glDeleteProgram(shaderProgramSecond);
 
     glfwTerminate();
 
