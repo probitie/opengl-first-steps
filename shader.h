@@ -5,9 +5,11 @@
 
 class Shader
 {
-public:
+private:
     // the program ID
-    unsigned int ID;
+    GLuint ID;
+
+public:
 
     /// constructor reads and builds the shader
     Shader(const char* vertexPath, const char* fragmentPath);
@@ -20,6 +22,7 @@ public:
     void setBool(const std::string &name, bool value) const;
     void setInt(const std::string &name, int value) const;
     void setFloat(const std::string &name, float value) const;
+    inline GLuint getID(){ return ID; }
 };
 
 #endif // SHADER_H

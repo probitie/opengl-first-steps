@@ -121,9 +121,9 @@ int main()
     //glUseProgram(shaderProgram);
 
     // TODO add shaders folder to cmake
-    Shader("/home/user/projects/code/cpp/GLFW-CMake-starter/shaders/shader.vs",
-           "/home/user/projects/code/cpp/GLFW-CMake-starter/shaders/shader.fs").use();
-
+    Shader shaderProgram("/home/user/projects/code/cpp/GLFW-CMake-starter/shaders/shader.vs",
+                         "/home/user/projects/code/cpp/GLFW-CMake-starter/shaders/shader.fs");
+    shaderProgram.use();
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -136,6 +136,14 @@ int main()
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+
+        // move triangle by sin from one side to another using uniform xOffset
+        GLfloat timeValue = glfwGetTime();
+        GLfloat actualOffset = sin(timeValue);
+
+        GLint xOffsetLocation = glGetUniformLocation(shaderProgram.getID(), "xOffset");
+        glUniform1f(xOffsetLocation, actualOffset);
 
         // render the triangle
         glBindVertexArray(VAO);
