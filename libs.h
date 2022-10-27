@@ -9,4 +9,6 @@
 #include <sstream>
 #include <iostream>
 
+#include "logger.h"
+
 #endif // LIBS_H

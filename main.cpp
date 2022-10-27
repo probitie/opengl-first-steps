@@ -134,6 +134,8 @@ int main()
     // as we only have a single shader, we could also just activate our shader once beforehand if we want to
     glUseProgram(shaderProgram);
 
+    Shader("", "");
+
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
