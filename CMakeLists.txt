@@ -7,6 +7,7 @@ find_package( OpenGL REQUIRED )
 include_directories( ${OPENGL_INCLUDE_DIRS} )
 
 include_directories( glad/include/ )
+include_directories( glm/)
 
 # Useful CMake options for Qt projects
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -20,6 +21,7 @@ add_subdirectory( /home/user/projects/code/cpp/GLFW-CMake-starter/glfw/glfw/glfw
 set( GLFW-CMAKE-STARTER-SRC
      main.cpp
      shader.cpp
+     stb_image.cpp
      )
      
 add_executable( GLFW-CMake-starter WIN32 ${GLFW-CMAKE-STARTER-SRC} )
